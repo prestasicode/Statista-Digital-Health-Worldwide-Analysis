@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Health Market Analysis</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .chart-container {
+            height: 500px;
+            margin-bottom: 30px;
+        }
+        .insights-container {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .navbar {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Digital Health Market Analysis</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Market Segment</h5>
+                        <select id="category-selector" class="form-select mb-3">
+                            <option value="Digital Treatment & Care">Digital Treatment & Care</option>
+                            <option value="Online Doctor Consultations">Online Doctor Consultations</option>
+                            <option value="Digital Fitness & Well-Being">Digital Fitness & Well-Being</option>
+                        </select>
+                        
+                        <h5 class="card-title">Analysis Metric</h5>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="metric" id="rev-users" value="rev_users" checked>
+                            <label class="form-check-label" for="rev-users">
+                                Revenue vs Users
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="metric" id="arpu" value="arpu">
+                            <label class="form-check-label" for="arpu">
+                                ARPU Trends
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="metric" id="penetration" value="penetration">
+                            <label class="form-check-label" for="penetration">
+                                Penetration Impact
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="metric" id="growth" value="growth">
+                            <label class="form-check-label" for="growth">
+                                Growth Rates
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div id="main-chart" class="chart-container"></div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div id="correlation-heatmap" class="chart-container"></div>
+            </div>
+            <div class="col-md-6">
+                <div id="market-drivers" class="chart-container"></div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12">
+                <div id="insights-container" class="insights-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data preparation
+        const years = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029];
+        
+        // Revenue data
+        const revenueData = {
+            'Digital Treatment & Care': [30.00, 50.31, 64.97, 91.95, 114.51, 132.93, 147.97, 171.86, 191.88, 218.81, 226.31, 248.98, 254.25],
+            'Online Doctor Consultations': [26.73, 33.29, 41.32, 60.31, 58.53, 34.02, 36.40, 100.15, 122.03, 136.61, 143.93, 156.78, 158.31],
+            'Digital Fitness & Well-Being': [0.79, 0.87, 1.36, 3.10, 8.87, 7.19, 8.56, 8.46, 10.14, 10.64, 11.20, 11.31, 11.55]
+        };
+        
+        // Users data
+        const usersData = {
+            'Digital Treatment & Care': [366.90, 427.11, 494.60, 584.78, 647.49, 706.83, 790.76, 880.86, 979.78, 1062.90, 1129.54, 1185.52, 1237.76],
+            'Online Doctor Consultations': [27.70, 42.16, 59.80, 84.27, 101.86, 106.31, 116.10, 122.39, 127.17, 131.69, 135.48, 138.36, 140.88],
+            'Digital Fitness & Well-Being': [199.01, 283.96, 402.28, 598.04, 738.76, 869.25, 1019.31, 1155.35, 1267.38, 1354.83, 1418.35, 1467.45, 1502.59]
+        };
+        
+        // Penetration data
+        const penetrationData = {
+            'Digital Treatment & Care': [5.04, 5.80, 6.65, 7.79, 8.56, 9.27, 10.29, 11.37, 12.54, 13.50, 14.23, 14.82, 15.36],
+            'Online Doctor Consultations': [0.38, 0.57, 0.80, 1.12, 1.35, 1.39, 1.51, 1.58, 1.63, 1.67, 1.71, 1.73, 1.75],
+            'Digital Fitness & Well-Being': [2.73, 3.86, 5.41, 7.97, 9.76, 11.40, 13.26, 14.91, 16.22, 17.20, 17.87, 18.35, 18.64]
+        };
+        
+        // Calculate ARPU
+        function calculateARPU(category) {
+            return revenueData[category].map((rev, i) => (rev * 1e9) / (usersData[category][i] * 1e6));
+        }
+        
+        // Calculate growth rates
+        function calculateGrowthRates(data) {
+            return data.map((val, i, arr) => i > 0 ? ((val - arr[i-1]) / arr[i-1]) * 100 : null).slice(1);
+        }
+        
+        // Calculate correlation matrix
+        function calculateCorrelationMatrix() {
+            const allData = [];
+            const categories = ['Digital Treatment & Care', 'Online Doctor Consultations', 'Digital Fitness & Well-Being'];
+            
+            categories.forEach(cat => {
+                allData.push(revenueData[cat]);
+                allData.push(usersData[cat]);
+            });
+            
+            const labels = [];
+            categories.forEach(cat => {
+                labels.push(`${cat} Revenue`);
+                labels.push(`${cat} Users`);
+            });
+            
+            // Calculate correlation coefficients
+            const corrMatrix = [];
+            for (let i = 0; i < allData.length; i++) {
+                corrMatrix[i] = [];
+                for (let j = 0; j < allData.length; j++) {
+                    corrMatrix[i][j] = pearsonCorrelation(allData[i], allData[j]);
+                }
+            }
+            
+            return {
+                matrix: corrMatrix,
+                labels: labels
+            };
+        }
+        
+        // Pearson correlation calculation
+        function pearsonCorrelation(x, y) {
+            const n = x.length;
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
+            
+            for (let i = 0; i < n; i++) {
+                sumX += x[i];
+                sumY += y[i];
+                sumXY += x[i] * y[i];
+                sumX2 += x[i] * x[i];
+                sumY2 += y[i] * y[i];
+            }
+            
+            const numerator = sumXY - (sumX * sumY) / n;
+            const denominator = Math.sqrt((sumX2 - (sumX * sumX) / n) * (sumY2 - (sumY * sumY) / n));
+            
+            return denominator === 0 ? 0 : numerator / denominator;
+        }
+        
+        // Market drivers data
+        const driversData = {
+            drivers: ['Capitalized uncertainty', 'GEO Growth', 'Liberality', 'Telemedicine trend', 'CEPT population', 'Technology advances', 'Health spending', 'COVID-19 trends'],
+            impacts: [11.3, -1.3, 1.0, 1.3, 1.5, 1.2, 0.9, 6.7]
+        };
+        
+        // Initialize charts
+        function initCharts() {
+            updateCharts('Digital Treatment & Care', 'rev_users');
+            
+            // Add event listeners
+            document.getElementById('category-selector').addEventListener('change', function() {
+                const category = this.value;
+                const metric = document.querySelector('input[name="metric"]:checked').value;
+                updateCharts(category, metric);
+            });
+            
+            document.querySelectorAll('input[name="metric"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const category = document.getElementById('category-selector').value;
+                    const metric = this.value;
+                    updateCharts(category, metric);
+                });
+            });
+        }
+        
+        // Update all charts
+        function updateCharts(category, metric) {
+            updateMainChart(category, metric);
+            updateCorrelationHeatmap();
+            updateMarketDriversChart();
+            updateInsights(category);
+        }
+        
+        // Update main chart based on selected metric
+        function updateMainChart(category, metric) {
+            let trace1, trace2, layout;
+            
+            if (metric === 'rev_users') {
+                trace1 = {
+                    x: years,
+                    y: revenueData[category],
+                    name: `${category} Revenue`,
+                    line: {color: 'royalblue', width: 3},
+                    yaxis: 'y'
+                };
+                
+                trace2 = {
+                    x: years,
+                    y: usersData[category],
+                    name: `${category} Users`,
+                    line: {color: 'firebrick', width: 3, dash: 'dot'},
+                    yaxis: 'y2'
+                };
+                
+                layout = {
+                    title: `${category}: Revenue vs User Growth`,
+                    xaxis: {title: 'Year'},
+                    yaxis: {title: 'Revenue (Billion USD)', side: 'left'},
+                    yaxis2: {title: 'Users (Million)', overlaying: 'y', side: 'right'},
+                    hovermode: 'x unified',
+                    showlegend: true
+                };
+                
+                Plotly.newPlot('main-chart', [trace1, trace2], layout);
+                
+            } else if (metric === 'arpu') {
+                const arpu = calculateARPU(category);
+                
+                trace1 = {
+                    x: years,
+                    y: arpu,
+                    name: `${category} ARPU`,
+                    line: {color: 'green', width: 3}
+                };
+                
+                layout = {
+                    title: `${category}: Average Revenue Per User (ARPU)`,
+                    xaxis: {title: 'Year'},
+                    yaxis: {title: 'ARPU (USD)'},
+                    hovermode: 'x'
+                };
+                
+                Plotly.newPlot('main-chart', [trace1], layout);
+                
+            } else if (metric === 'penetration') {
+                trace1 = {
+                    x: years,
+                    y: revenueData[category],
+                    name: `${category} Revenue`,
+                    line: {color: 'royalblue', width: 3},
+                    yaxis: 'y'
+                };
+                
+                trace2 = {
+                    x: years,
+                    y: penetrationData[category],
+                    name: `${category} Penetration`,
+                    line: {color: 'purple', width: 3, dash: 'dot'},
+                    yaxis: 'y2'
+                };
+                
+                layout = {
+                    title: `${category}: Revenue vs Market Penetration`,
+                    xaxis: {title: 'Year'},
+                    yaxis: {title: 'Revenue (Billion USD)', side: 'left'},
+                    yaxis2: {title: 'Penetration Rate (%)', overlaying: 'y', side: 'right'},
+                    hovermode: 'x unified',
+                    showlegend: true
+                };
+                
+                Plotly.newPlot('main-chart', [trace1, trace2], layout);
+                
+            } else if (metric === 'growth') {
+                const revenueGrowth = calculateGrowthRates(revenueData[category]);
+                const usersGrowth = calculateGrowthRates(usersData[category]);
+                
+                trace1 = {
+                    x: years.slice(1),
+                    y: revenueGrowth,
+                    name: 'Revenue Growth',
+                    line: {color: 'royalblue', width: 3}
+                };
+                
+                trace2 = {
+                    x: years.slice(1),
+                    y: usersGrowth,
+                    name: 'User Growth',
+                    line: {color: 'firebrick', width: 3, dash: 'dot'}
+                };
+                
+                layout = {
+                    title: `${category}: Revenue vs User Growth Rates`,
+                    xaxis: {title: 'Year'},
+                    yaxis: {title: 'Growth Rate (%)'},
+                    hovermode: 'x unified',
+                    showlegend: true
+                };
+                
+                Plotly.newPlot('main-chart', [trace1, trace2], layout);
+            }
+        }
+        
+        // Update correlation heatmap
+        function updateCorrelationHeatmap() {
+            const corr = calculateCorrelationMatrix();
+            
+            const trace = {
+                z: corr.matrix,
+                x: corr.labels,
+                y: corr.labels,
+                type: 'heatmap',
+                colorscale: 'Viridis',
+                zmin: -1,
+                zmax: 1,
+                text: corr.matrix.map(row => row.map(val => val.toFixed(2))),
+                texttemplate: "%{text}",
+                hoverinfo: "text"
+            };
+            
+            const layout = {
+                title: 'Revenue-User Correlation Matrix',
+                xaxis: {title: 'Metrics'},
+                yaxis: {title: 'Metrics'}
+            };
+            
+            Plotly.newPlot('correlation-heatmap', [trace], layout);
+        }
+        
+        // Update market drivers chart
+        function updateMarketDriversChart() {
+            const trace = {
+                x: driversData.impacts,
+                y: driversData.drivers,
+                type: 'bar',
+                orientation: 'h',
+                marker: {
+                    color: driversData.impacts.map(impact => impact < 0 ? 'red' : 'green')
+                }
+            };
+            
+            const layout = {
+                title: 'Market Value Drivers (2023 Impact in %)',
+                xaxis: {title: 'Impact on Market Value Change (%)'},
+                yaxis: {title: 'Driver'}
+            };
+            
+            Plotly.newPlot('market-drivers', [trace], layout);
+        }
+        
+        // Update insights
+        function updateInsights(category) {
+            const insightsContainer = document.getElementById('insights-container');
+            let insightsHTML = '';
+            
+            // Calculate correlation for the selected category
+            const corr = pearsonCorrelation(revenueData[category], usersData[category]);
+            
+            let corrStrength;
+            if (corr > 0.8) corrStrength = "very strong positive";
+            else if (corr > 0.6) corrStrength = "strong positive";
+            else if (corr > 0.4) corrStrength = "moderate positive";
+            else corrStrength = "weak";
+            
+            if (category === 'Digital Treatment & Care') {
+                insightsHTML = `
+                    <h4>Key Insights: Digital Treatment & Care</h4>
+                    <p>Revenue and users show ${corrStrength} correlation (r=${corr.toFixed(2)}).</p>
+                    <p>This segment demonstrates consistent growth in both users and revenue, indicating a healthy market expansion.</p>
+                    <p>The ARPU has been increasing, suggesting higher monetization per user over time.</p>
+                    <p>Market penetration is steadily increasing, reaching 15.36% by 2039.</p>
+                    <p>The strong correlation suggests user acquisition directly drives revenue in this segment.</p>
+                `;
+            } else if (category === 'Online Doctor Consultations') {
+                insightsHTML = `
+                    <h4>Key Insights: Online Doctor Consultations</h4>
+                    <p>Revenue and users show ${corrStrength} correlation (r=${corr.toFixed(2)}).</p>
+                    <p>This segment shows interesting dynamics with revenue growth outpacing user growth in recent years.</p>
+                    <p>The significant revenue jump in 2024 suggests a business model change or market consolidation.</p>
+                    <p>ARPU has been volatile, indicating potential pricing strategy changes.</p>
+                    <p>Penetration remains relatively low (1.75% by 2039), suggesting significant growth potential.</p>
+                `;
+            } else if (category === 'Digital Fitness & Well-Being') {
+                insightsHTML = `
+                    <h4>Key Insights: Digital Fitness & Well-Being</h4>
+                    <p>Revenue and users show ${corrStrength} correlation (r=${corr.toFixed(2)}).</p>
+                    <p>This segment shows signs of market maturation with slowing growth rates in both users and revenue.</p>
+                    <p>ARPU has remained relatively stable, suggesting a mature pricing model.</p>
+                    <p>Penetration reaches 18.64% by 2039, indicating widespread adoption.</p>
+                    <p>The market may be approaching saturation, with growth coming from existing user monetization.</p>
+                `;
+            }
+            
+            insightsContainer.innerHTML = insightsHTML;
+        }
+        
+        // Initialize when page loads
+        window.onload = initCharts;
+    </script>
+</body>
+</html>
