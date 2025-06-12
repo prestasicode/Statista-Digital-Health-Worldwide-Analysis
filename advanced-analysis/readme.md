@@ -43,3 +43,27 @@ This project segments markets based on growth rate and revenue per user using K-
 
 ## Example Insights
 "Identified 4 key market segments: High-growth/high-value (North America), High-growth/emerging (SE Asia), Mature/high-value (Japan), and Developing markets (Africa)."
+
+
+# Scenario Analysis for Digital Health HMO
+
+This project evaluates how different economic conditions might impact future revenue.
+
+## Features
+- Three predefined scenarios (optimistic, baseline, pessimistic)
+- Econometric modeling of GDP and internet penetration impacts
+- Interactive comparison of scenario outcomes
+- Strategic recommendations based on sensitivity analysis
+
+## Usage
+1. Install requirements: `pip install -r ../requirements.txt`
+2. Place your data in `data/digital_health_hmo_full.csv` with columns: `year,revenue,gdp,internet_users,population`
+3. Run the script: `python what_if_scenarios.py`
+
+## Outputs
+- `output/scenario_results.csv`: Revenue projections under each scenario
+- `output/scenario_visualization.html`: Interactive Plotly visualization
+- `output/scenario_insights.txt`: Key findings and recommendations
+
+## Example Insights
+"Under optimistic conditions, revenue could reach $120B by 2028, while pessimistic scenarios project $80B - a 50% difference highlighting market volatility sensitivity."
