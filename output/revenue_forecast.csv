@@ -1,0 +1,13 @@
+date_year,value,type,lower_ci,upper_ci
+2018,50,Historical,,
+2019,55,Historical,,
+2020,65,Historical,,
+2021,70,Historical,,
+2022,80,Historical,,
+2023,95,Historical,,
+2024,110,Historical,,
+2025,123.08,Forecast,112.55,133.61
+2026,134.13,Forecast,116.63,151.62
+2027,144.93,Forecast,119.53,170.33
+2028,155.7,Forecast,122.25,189.15
+2029,166.49,Forecast,124.93,208.05

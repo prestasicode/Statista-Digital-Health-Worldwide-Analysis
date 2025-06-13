@@ -1,0 +1,7 @@
+region,cluster,users_latest_year,average_growth_rate_pct,average_revenue_per_user_usd
+North America,0,15000,20,50
+Western Europe,0,11000,16.88,50
+Southeast Asia,1,45000,43.75,5
+Latin America,1,30000,41.67,5
+Africa,1,12000,52.5,3.75
+East Asia,0,10000,19.05,44.29
